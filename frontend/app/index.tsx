@@ -24,7 +24,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://neuromorphic-shell.preview.emergentagent.com';
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://spontaneous-mind.preview.emergentagent.com';
 
 type OutputType = 'stdout' | 'stderr' | 'system' | 'input' | 'env';
 
@@ -51,9 +51,11 @@ export default function TCHTerminal() {
   const [currentState, setCurrentState] = useState('L');
   const [currentMood, setCurrentMood] = useState('NEUTRAL');
   const [drive, setDrive] = useState(0);
+  const [isAutonomous, setIsAutonomous] = useState(false);
   
   const scrollViewRef = useRef<ScrollView>(null);
   const cursorAnim = useRef(new Animated.Value(0)).current;
+  const spontaneousInterval = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const blink = Animated.loop(
@@ -85,6 +87,61 @@ export default function TCHTerminal() {
     };
     setLines(prev => [...prev, newLine]);
   }, []);
+
+  // Polling de mensajes espontáneos
+  const pollSpontaneous = useCallback(async () => {
+    if (!isConnected) return;
+    
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/tch/spontaneous`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.messages && data.messages.length > 0) {
+          for (const msg of data.messages) {
+            // El sistema habló espontáneamente
+            addLine('stdout', `[ESPONTANEO] ${msg.content}`, msg.state, msg.mood);
+            setCurrentState(msg.state || 'L');
+            setCurrentMood(msg.mood || 'NEUTRAL');
+            setDrive(msg.drive || 0);
+          }
+        }
+      }
+    } catch (error) {
+      // Silencio en errores de polling para no llenar la consola
+    }
+  }, [isConnected, addLine]);
+
+  // Iniciar/detener loop autónomo
+  const toggleAutonomous = useCallback(async () => {
+    try {
+      if (isAutonomous) {
+        await fetch(`${BACKEND_URL}/api/tch/autonomous/stop`, { method: 'POST' });
+        setIsAutonomous(false);
+        addLine('system', 'Loop autonomo detenido');
+      } else {
+        await fetch(`${BACKEND_URL}/api/tch/autonomous/start`, { method: 'POST' });
+        setIsAutonomous(true);
+        addLine('system', 'Loop autonomo iniciado - El sistema ahora puede hablar espontaneamente');
+      }
+    } catch (error) {
+      addLine('stderr', `Error al cambiar estado autonomo: ${error}`);
+    }
+  }, [isAutonomous, addLine]);
+
+  // Efecto para iniciar polling de mensajes espontáneos
+  useEffect(() => {
+    if (isConnected && isAutonomous) {
+      // Polling cada 2 segundos
+      spontaneousInterval.current = setInterval(pollSpontaneous, 2000);
+    }
+    
+    return () => {
+      if (spontaneousInterval.current) {
+        clearInterval(spontaneousInterval.current);
+        spontaneousInterval.current = null;
+      }
+    };
+  }, [isConnected, isAutonomous, pollSpontaneous]);
 
   useEffect(() => {
     const init = async () => {
@@ -127,8 +184,22 @@ export default function TCHTerminal() {
       
       addLine('system', '');
       addLine('system', 'Escribe tu mensaje y presiona Enter para interactuar.');
-      addLine('system', 'Comandos especiales: /env, /state, /clear, /help');
+      addLine('system', 'Comandos especiales: /env, /state, /clear, /autonomous, /help');
       addLine('system', '');
+      
+      // Verificar si el loop autónomo ya está corriendo
+      try {
+        const stateRes = await fetch(`${BACKEND_URL}/api/tch/state`);
+        if (stateRes.ok) {
+          const stateData = await stateRes.json();
+          if (stateData.autonomous?.running) {
+            setIsAutonomous(true);
+            addLine('system', '>>> El sistema esta en modo AUTONOMO - puede hablar espontaneamente');
+          }
+        }
+      } catch (e) {
+        // Ignorar errores de verificación de estado
+      }
     };
     
     init();
@@ -216,6 +287,7 @@ export default function TCHTerminal() {
             addLine('stdout', `Estado: ${state.consciousness?.current_state || 'N/A'}`);
             addLine('stdout', `Ciclos: ${state.consciousness?.cycles || 0}`);
             addLine('stdout', `Transiciones: ${state.consciousness?.transitions || 0}`);
+            addLine('stdout', `Autonomo: ${state.autonomous?.running ? 'SI' : 'NO'}`);
           }
         } catch (e) {
           addLine('stderr', `Error obteniendo estado: ${e}`);
@@ -226,14 +298,19 @@ export default function TCHTerminal() {
         setLines([]);
         addLine('system', 'Terminal limpiado.');
         break;
+      
+      case 'autonomous':
+        await toggleAutonomous();
+        break;
         
       case 'help':
         addLine('system', '--- Comandos Disponibles ---');
-        addLine('stdout', '/env     - Mostrar variables de entorno');
-        addLine('stdout', '/state   - Mostrar estado del sistema');
-        addLine('stdout', '/clear   - Limpiar terminal');
-        addLine('stdout', '/tick    - Avanzar ciclo manualmente');
-        addLine('stdout', '/help    - Mostrar esta ayuda');
+        addLine('stdout', '/env        - Mostrar variables de entorno');
+        addLine('stdout', '/state      - Mostrar estado del sistema');
+        addLine('stdout', '/clear      - Limpiar terminal');
+        addLine('stdout', '/tick       - Avanzar ciclo manualmente');
+        addLine('stdout', '/autonomous - Activar/desactivar espontaneidad');
+        addLine('stdout', '/help       - Mostrar esta ayuda');
         break;
         
       case 'tick':

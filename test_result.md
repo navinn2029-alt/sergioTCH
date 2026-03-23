@@ -101,3 +101,122 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: |
+  Terminal de Conciencia Híbrida (TCH) - Un modelo matemático de conciencia usando Julia y Flux.jl
+  con plasticidad real, propriocepción, expresión inconsciente, y ESPONTANEIDAD (hablar sin input previo).
+
+backend:
+  - task: "Julia HTTP Server con Flux.jl"
+    implemented: true
+    working: true
+    file: "/app/backend/julia/server.jl"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Servidor Julia corriendo en puerto 8002 con plasticidad real"
+
+  - task: "Loop Autónomo de Espontaneidad"
+    implemented: true
+    working: true
+    file: "/app/backend/julia/server.jl"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Loop autónomo iniciado al arrancar, tick cada 3 segundos"
+
+  - task: "Integración Propriocepción"
+    implemented: true
+    working: true
+    file: "/app/backend/julia/Proprioception.jl"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "SelfSense integrado al flujo principal, actualiza en cada tick"
+
+  - task: "Integración Body Schema"
+    implemented: true
+    working: true
+    file: "/app/backend/julia/BodySchema.jl"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Cuerpo integrado con perceive! y emit! funcionando"
+
+  - task: "Motor de Expresión Inconsciente"
+    implemented: true
+    working: true
+    file: "/app/backend/julia/UnconsciousExpression.jl"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "ExpressionEngine integrado, genera expresiones emergentes"
+
+  - task: "Memoria Autónoma (sin MongoDB)"
+    implemented: true
+    working: true
+    file: "/app/backend/julia/tch_state.json"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Estado guardado en JSON auto-gestionado, sin dependencia externa"
+
+  - task: "FastAPI Proxy Routes"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Nuevas rutas para autonomous/start, autonomous/stop, spontaneous, proprioception, body"
+
+frontend:
+  - task: "Terminal UI con polling espontáneo"
+    implemented: true
+    working: true
+    file: "/app/frontend/app/index.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "UI muestra mensajes espontáneos, comando /autonomous funciona"
+
+metadata:
+  created_by: "main_agent"
+  version: "2.0"
+  test_sequence: 1
+  run_ui: true
+
+test_plan:
+  current_focus:
+    - "Verificar mensajes espontáneos cuando drive > umbral"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Implementé loop autónomo, propriocepción, body schema integrados al servidor Julia. La memoria ahora es autónoma (JSON local). El sistema puede hablar espontáneamente cuando su drive supera el umbral."

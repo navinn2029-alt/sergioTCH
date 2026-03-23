@@ -188,6 +188,31 @@ async def tch_tick():
     """Avanzar un ciclo del sistema."""
     return await proxy_to_julia("POST", "/api/tch/tick")
 
+@api_router.post("/tch/autonomous/start")
+async def start_autonomous():
+    """Iniciar loop autónomo de espontaneidad."""
+    return await proxy_to_julia("POST", "/api/tch/autonomous/start")
+
+@api_router.post("/tch/autonomous/stop")
+async def stop_autonomous():
+    """Detener loop autónomo."""
+    return await proxy_to_julia("POST", "/api/tch/autonomous/stop")
+
+@api_router.get("/tch/spontaneous")
+async def get_spontaneous():
+    """Obtener mensajes espontáneos (long-polling)."""
+    return await proxy_to_julia("GET", "/api/tch/spontaneous")
+
+@api_router.get("/tch/proprioception")
+async def get_proprioception():
+    """Obtener estado de propriocepción."""
+    return await proxy_to_julia("GET", "/api/tch/proprioception")
+
+@api_router.get("/tch/body")
+async def get_body():
+    """Obtener estado del esquema corporal."""
+    return await proxy_to_julia("GET", "/api/tch/body")
+
 @api_router.get("/tch/history")
 async def get_history(limit: int = 50):
     """Obtener historial de chat."""
