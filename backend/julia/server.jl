@@ -23,6 +23,7 @@ include("Proprioception.jl")
 include("UnconsciousExpression.jl")
 include("Experiencias.jl")
 include("Worm.jl")
+include("MarkovBrain.jl")
 
 using .TCHCore
 using .BodySchema
@@ -30,6 +31,7 @@ using .Proprioception
 using .UnconsciousExpression
 using .Experiencias
 using .Worm
+using .MarkovBrain
 
 # Instancia global
 global tch = nothing
@@ -38,13 +40,14 @@ global self_sense = nothing
 global expression_engine = nothing
 global experience_bank = nothing
 global worm = nothing  # El cerebro orgánico
+global markov_brain = nothing  # El generador de texto
 
 # Buffer de mensajes espontáneos (para push a clientes)
 global spontaneous_buffer = Vector{Dict{String, Any}}()
 global buffer_lock = ReentrantLock()
 
 function init_tch()
-    global tch, body, self_sense, expression_engine, experience_bank, worm
+    global tch, body, self_sense, expression_engine, experience_bank, worm, markov_brain
     
     if isnothing(tch)
         println("🧠 Iniciando sustrato neural TCH...")
@@ -72,6 +75,33 @@ function init_tch()
         println("   Plasticidad: STDP + Poda + Neurogénesis")
     end
     
+    # Inicializar banco de experiencias
+    if isnothing(experience_bank)
+        println("📚 Iniciando banco de experiencias...")
+        experience_bank = ExperienceBank()
+        load_experiences!(experience_bank)
+    end
+    
+    # Inicializar MarkovBrain - el generador de texto
+    if isnothing(markov_brain)
+        println("🧬 Iniciando MarkovBrain (generador de texto)...")
+        markov_brain = MarkovChain(order=2)
+        
+        # Alimentar con todas las experiencias
+        all_texts = String[]
+        for conv in experience_bank.conversaciones
+            append!(all_texts, conv.patrones_sergio)
+        end
+        append!(all_texts, experience_bank.poesia)
+        append!(all_texts, experience_bank.frases_clave)
+        
+        build_chain!(markov_brain, all_texts)
+        stats = MarkovBrain.get_stats(markov_brain)
+        println("   Vocabulario: $(stats["vocabulary_size"]) palabras")
+        println("   Contextos: $(stats["total_contexts"])")
+        println("   GENERA texto nuevo, no repite")
+    end
+    
     # Inicializar cuerpo
     if isnothing(body)
         println("🫀 Iniciando esquema corporal...")
@@ -93,13 +123,6 @@ function init_tch()
         expression_engine = ExpressionEngine()
         println("   Fluidez: $(expression_engine.fluency)")
         println("   Creatividad: $(expression_engine.creativity)")
-    end
-    
-    # Inicializar banco de experiencias
-    if isnothing(experience_bank)
-        println("📚 Iniciando banco de experiencias...")
-        experience_bank = ExperienceBank()
-        load_experiences!(experience_bank)
     end
     
     tch
@@ -265,58 +288,37 @@ end
 
 """
 Generar expresión espontánea basada en el estado interno.
-Esta es la VOZ EMERGENTE del sistema, usando experiencias REALES de comunicación.
+AHORA GENERA texto nuevo usando MarkovBrain + Worm.
+El Worm decide CÓMO generar (temperatura, longitud).
+MarkovBrain GENERA el texto.
 """
 function generate_spontaneous_expression(core::TCH)::String
-    global self_sense, expression_engine, experience_bank
+    global self_sense, expression_engine, experience_bank, worm, markov_brain
     
-    mood = calculate_mood(core)
-    drive = calculate_drive(core)
-    state = core.current_state
-    
-    # PRIORIDAD 1: Usar banco de experiencias reales
-    if !isnothing(experience_bank) && experience_bank.loaded
-        # Obtener expresión contextual basada en estimulación
-        expression = get_contextual_expression(experience_bank, mood, core.stimulation)
-        if !isempty(expression)
-            return expression
-        end
+    # Si no hay MarkovBrain, no podemos generar
+    if isnothing(markov_brain)
+        return ""
     end
     
-    # PRIORIDAD 2: Usar motor de expresión inconsciente
-    if !isnothing(expression_engine) && can_express(expression_engine)
-        internal_state = Dict{Symbol, Float32}(
-            :stimulation => core.stimulation,
-            :tension => core.tension,
-            :curiosity => core.curiosity,
-            :expression => core.expression,
-            :dopamine => core.dopamine,
-            :cortisol => core.cortisol
-        )
+    # Obtener output del Worm
+    motor_output = Float32[0.5, 0.5, 0.5, 0.5]  # Default
+    if !isnothing(worm)
+        motor_output = Worm.get_output(worm)
+    end
+    
+    # GENERAR texto nuevo usando MarkovBrain modulado por Worm
+    text = generate_from_worm(markov_brain, motor_output)
+    
+    # Si la generación falló, intentar generación directa
+    if isempty(text)
+        # Calcular temperatura basada en estado TCH
+        temp = 0.8f0 + (core.curiosity * 0.5f0) + (core.expression * 0.3f0)
+        temp = clamp(temp, 0.5f0, 1.8f0)
         
-        personality_balance = 0.66f0  # Géminis dominante
-        success, expression, _ = attempt_expression!(
-            expression_engine,
-            internal_state,
-            personality_balance,
-            ""
-        )
-        
-        if success && !isempty(expression)
-            return expression
-        end
+        text = generate(markov_brain, max_words=25, temperature=temp)
     end
     
-    # PRIORIDAD 3: Pensamientos internos
-    if !isempty(core.thoughts)
-        recent = filter(t -> t.spontaneous, core.thoughts)
-        if !isempty(recent)
-            return recent[end].content
-        end
-    end
-    
-    # Silencio - el sistema no tiene nada que decir en este momento
-    ""
+    text
 end
 
 function json_response(data; status=200)
