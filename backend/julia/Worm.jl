@@ -110,11 +110,11 @@ function Neuron(id::Int, tipo::NeuronType; nombre::String="")
     Neuron(
         id, tipo,
         -70.0f0,        # potencial (mV típico de reposo)
-        -55.0f0,        # umbral de disparo
+        -60.0f0,        # umbral de disparo (más bajo = más sensible)
         -70.0f0,        # potencial de reposo
-        20.0f0,         # tau (ms)
+        10.0f0,         # tau (ms) - más rápido
         0,              # refractario
-        3,              # periodo refractario
+        2,              # periodo refractario (más corto)
         0, 0, 0,        # disparos, ultimo_disparo, edad
         isempty(nombre) ? "N$id" : nombre,
         now()
@@ -187,7 +187,7 @@ function create_connectome(;
     for s_id in sensory_ids
         for i_id in inter_ids
             if rand() < densidad_conexion
-                peso = (rand(Float32) * 0.4f0 + 0.1f0) * (rand() < 0.8 ? 1 : -1)
+                peso = (rand(Float32) * 0.6f0 + 0.2f0) * (rand() < 0.85 ? 1 : -1)  # Pesos más fuertes
                 syn = Synapse(synapse_id, s_id, i_id, peso=peso)
                 sinapsis[synapse_id] = syn
                 push!(sinapsis_por_pre[s_id], synapse_id)
@@ -201,7 +201,7 @@ function create_connectome(;
     for i1 in inter_ids
         for i2 in inter_ids
             if i1 != i2 && rand() < densidad_conexion * 0.5f0
-                peso = (rand(Float32) * 0.3f0 + 0.05f0) * (rand() < 0.7 ? 1 : -1)
+                peso = (rand(Float32) * 0.4f0 + 0.1f0) * (rand() < 0.7 ? 1 : -1)
                 syn = Synapse(synapse_id, i1, i2, peso=peso)
                 sinapsis[synapse_id] = syn
                 push!(sinapsis_por_pre[i1], synapse_id)
@@ -211,11 +211,11 @@ function create_connectome(;
         end
     end
     
-    # Conectar inter -> motor
+    # Conectar inter -> motor (más conexiones, más fuertes)
     for i_id in inter_ids
         for m_id in motor_ids
-            if rand() < densidad_conexion
-                peso = rand(Float32) * 0.5f0 + 0.1f0  # Solo excitadoras a motoras
+            if rand() < densidad_conexion * 1.5f0  # Más conexiones a motoras
+                peso = rand(Float32) * 0.6f0 + 0.3f0  # Pesos más fuertes
                 syn = Synapse(synapse_id, i_id, m_id, peso=peso)
                 sinapsis[synapse_id] = syn
                 push!(sinapsis_por_pre[i_id], synapse_id)
@@ -319,14 +319,18 @@ function tick!(conn::Connectome)::Bool
         motor_activity = false
         for (id, n) in conn.neuronas
             if n.tipo == MOTOR
-                idx = parse(Int, replace(n.nombre, "M" => ""))
-                if idx <= length(conn.output_buffer)
-                    # Actividad = potencial normalizado
-                    activity = clamp((n.potencial - n.potencial_reposo) / 
-                                    (n.umbral - n.potencial_reposo), 0.0f0, 1.0f0)
-                    conn.output_buffer[idx] = activity
-                    if activity > 0.5f0
+                idx = parse(Int, replace(n.nombre, r"M_?n?e?w?" => ""))
+                if idx >= 1 && idx <= length(conn.output_buffer)
+                    # Actividad basada en disparos recientes (últimos 10 ciclos)
+                    recent_fire = (conn.ciclo - n.ultimo_disparo) < 10
+                    if recent_fire
+                        # Output proporcional a qué tan reciente fue el disparo
+                        recency = 1.0f0 - Float32(conn.ciclo - n.ultimo_disparo) / 10.0f0
+                        conn.output_buffer[idx] = max(conn.output_buffer[idx], recency)
                         motor_activity = true
+                    else
+                        # Decaer gradualmente
+                        conn.output_buffer[idx] *= 0.9f0
                     end
                 end
             end

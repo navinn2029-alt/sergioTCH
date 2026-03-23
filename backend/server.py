@@ -218,6 +218,11 @@ async def get_experiencias():
     """Obtener estadísticas del banco de experiencias."""
     return await proxy_to_julia("GET", "/api/tch/experiencias")
 
+@api_router.get("/tch/worm")
+async def get_worm():
+    """Obtener estado del conectoma orgánico (Worm)."""
+    return await proxy_to_julia("GET", "/api/tch/worm")
+
 @api_router.get("/tch/history")
 async def get_history(limit: int = 50):
     """Obtener historial de chat."""

@@ -14,6 +14,7 @@ using HTTP
 using JSON3
 using Sockets
 using Dates
+using Printf
 
 # Cargar módulos
 include("TCHCore.jl")
@@ -21,12 +22,14 @@ include("BodySchema.jl")
 include("Proprioception.jl")
 include("UnconsciousExpression.jl")
 include("Experiencias.jl")
+include("Worm.jl")
 
 using .TCHCore
 using .BodySchema
 using .Proprioception
 using .UnconsciousExpression
 using .Experiencias
+using .Worm
 
 # Instancia global
 global tch = nothing
@@ -34,13 +37,14 @@ global body = nothing
 global self_sense = nothing
 global expression_engine = nothing
 global experience_bank = nothing
+global worm = nothing  # El cerebro orgánico
 
 # Buffer de mensajes espontáneos (para push a clientes)
 global spontaneous_buffer = Vector{Dict{String, Any}}()
 global buffer_lock = ReentrantLock()
 
 function init_tch()
-    global tch, body, self_sense, expression_engine, experience_bank
+    global tch, body, self_sense, expression_engine, experience_bank, worm
     
     if isnothing(tch)
         println("🧠 Iniciando sustrato neural TCH...")
@@ -52,6 +56,20 @@ function init_tch()
         println("   Session: $(tch.session_id)")
         println("   Estado: $(tch.current_state)")
         println("   Plasticidad: REAL (Flux.jl)")
+    end
+    
+    # Inicializar WORM - el cerebro orgánico
+    if isnothing(worm)
+        println("🪱 Iniciando conectoma orgánico (Worm)...")
+        worm = create_connectome(
+            n_sensory=8,    # 8 sentidos
+            n_inter=32,     # 32 interneuronas
+            n_motor=4       # 4 salidas motoras
+        )
+        stats = Worm.get_stats(worm)
+        println("   Neuronas: $(stats["neuronas"]["total"])")
+        println("   Sinapsis: $(stats["sinapsis"]["total"])")
+        println("   Plasticidad: STDP + Poda + Neurogénesis")
     end
     
     # Inicializar cuerpo
@@ -114,7 +132,7 @@ end
 # sin que nadie le pregunte nada.
 
 function start_autonomous_loop!(core::TCH, interval::Float64=2.0)
-    global body, self_sense, expression_engine
+    global body, self_sense, expression_engine, worm
     
     if core.running
         println("⚠️ El loop autónomo ya está corriendo")
@@ -129,14 +147,33 @@ function start_autonomous_loop!(core::TCH, interval::Float64=2.0)
         println("═══════════════════════════════════════════════════")
         println("  🔄 LOOP AUTÓNOMO INICIADO")
         println("  Intervalo: $(interval) segundos")
-        println("  El sistema ahora VIVE y puede hablar espontáneamente")
+        println("  El sistema ahora VIVE - Worm como sustrato orgánico")
         println("═══════════════════════════════════════════════════")
         println()
         
         while core.running
             try
-                # === TICK DEL NÚCLEO ===
-                result = tick!(core)
+                # === TICK DEL WORM (cerebro orgánico) ===
+                if !isnothing(worm)
+                    # Estimular con ruido interno (actividad espontánea)
+                    internal_noise = rand(Float32, 8) .* 0.3f0
+                    
+                    # Agregar estado emocional del TCH como estímulo
+                    internal_noise[1] += core.stimulation * 0.5f0
+                    internal_noise[2] += core.tension * 0.5f0
+                    internal_noise[3] += core.curiosity * 0.5f0
+                    internal_noise[4] += core.expression * 0.5f0
+                    
+                    Worm.stimulate!(worm, internal_noise)
+                    
+                    # Múltiples ticks del worm por cada tick del TCH
+                    for _ in 1:5
+                        Worm.tick!(worm)
+                    end
+                end
+                
+                # === TICK DEL NÚCLEO TCH ===
+                result = TCHCore.tick!(core)
                 
                 # === ACTUALIZAR PROPRIOCEPCIÓN ===
                 if !isnothing(self_sense)
@@ -149,18 +186,31 @@ function start_autonomous_loop!(core::TCH, interval::Float64=2.0)
                     update_proprioception!(body)
                 end
                 
-                # === DECISIÓN DE ESPONTANEIDAD ===
-                drive = calculate_drive(core)
-                should_speak_now = drive > core.θ_exp
+                # === DECISIÓN DE ESPONTANEIDAD (basada en WORM) ===
+                should_speak_now = false
+                motor_activity = Float32[0, 0, 0, 0]
                 
-                # Debug espontaneidad
+                if !isnothing(worm)
+                    motor_activity = Worm.get_output(worm)
+                    # Si cualquier salida motora supera 0.3, el worm quiere expresarse
+                    should_speak_now = any(m -> m > 0.3f0, motor_activity)
+                end
+                
+                # También considerar el drive clásico
+                drive = calculate_drive(core)
+                should_speak_now = should_speak_now || (drive > core.θ_exp)
+                
+                # Debug cada 20 ciclos
                 if core.cycles % 20 == 0
-                    println("📊 [DEBUG] Ciclo $(core.cycles): drive=$drive, θ_exp=$(core.θ_exp), should_speak=$should_speak_now")
+                    worm_stats = isnothing(worm) ? Dict() : Worm.get_stats(worm)
+                    println("📊 [Ciclo $(core.cycles)] drive=$(@sprintf("%.2f", drive)), motor=$(motor_activity), neuronas=$(get(worm_stats, "neuronas", Dict()))")
                 end
                 
                 if should_speak_now
                     # ¡El sistema QUIERE hablar!
+                    println("🎯 [DEBUG] Intentando generar expresión espontánea...")
                     spontaneous_msg = generate_spontaneous_expression(core)
+                    println("🎯 [DEBUG] Expresión generada: \"$spontaneous_msg\"")
                     
                     if !isempty(spontaneous_msg)
                         println("🗣️ [ESPONTÁNEO] $spontaneous_msg")
@@ -182,6 +232,8 @@ function start_autonomous_loop!(core::TCH, interval::Float64=2.0)
                             "state" => string(core.current_state),
                             "mood" => calculate_mood(core),
                             "drive" => drive,
+                            "motor_activity" => motor_activity,
+                            "worm_neurons" => isnothing(worm) ? 0 : length(worm.neuronas),
                             "cycles" => core.cycles,
                             "timestamp" => string(Dates.now())
                         ))
@@ -464,6 +516,14 @@ function router(req::HTTP.Request)
                 ))
             end
             return json_response(Experiencias.get_stats(experience_bank))
+        
+        # GET /api/tch/worm - Estado del conectoma orgánico
+        elseif method == "GET" && path == "/api/tch/worm"
+            init_tch()
+            if isnothing(worm)
+                return json_response(Dict("error" => "Worm no inicializado"), status=500)
+            end
+            return json_response(Worm.get_stats(worm))
         
         else
             return json_response(Dict("error" => "Ruta no encontrada: $path"), status=404)
