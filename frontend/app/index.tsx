@@ -24,7 +24,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://spontaneous-mind.preview.emergentagent.com';
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://worm-brain-1.preview.emergentagent.com';
 
 type OutputType = 'stdout' | 'stderr' | 'system' | 'input' | 'env';
 

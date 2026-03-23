@@ -210,8 +210,24 @@ function load_experiences!(bank::ExperienceBank)
         end
     end
     
+    # === CARGAR INFLUENCIAS MUSICALES ===
+    influencias_path = joinpath(EXPERIENCIAS_DIR, "influencias_musicales.txt")
+    if isfile(influencias_path)
+        println("🎵 Cargando influencias musicales...")
+        lines = readlines(influencias_path)
+        influencias_count = 0
+        for line in lines
+            line = strip(line)
+            if !isempty(line)
+                push!(bank.poesia, line)  # Agregar como contenido poético
+                influencias_count += 1
+            end
+        end
+        println("   ✓ Influencias: $(influencias_count) líneas")
+    end
+    
     bank.loaded = true
-    println("📚 Total: $(total_patrones) expresiones cargadas")
+    println("📚 Total: $(total_patrones) expresiones + $(length(bank.poesia)) líneas poéticas")
     
     bank
 end
