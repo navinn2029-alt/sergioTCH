@@ -14,7 +14,7 @@ using Random
 using Dates
 
 export Neuron, Synapse, Connectome
-export create_connectome, tick!, stimulate!, get_output
+export create_connectome, create_connectome_from_params, tick!, stimulate!, get_output
 export prune!, neurogenesis!, get_stats
 export NeuronType, SENSORY, INTER, MOTOR
 
@@ -236,6 +236,161 @@ function create_connectome(;
         100,            # frecuencia_poda
         0.001f0,        # prob_neurogenesis
         500,            # max_neuronas
+        zeros(Float32, n_motor),
+        ReentrantLock()
+    )
+end
+
+"""
+Crear conectoma desde parámetros derivados de la Personalidad.
+Los valores NO son arbitrarios - EMERGEN de N1-Géminis.
+"""
+function create_connectome_from_params(params::Dict{Symbol, Any})::Connectome
+    # Extraer parámetros derivados de la identidad
+    n_sensory = get(params, :n_sensory, 8)
+    n_inter = get(params, :n_inter, 32)
+    n_motor = get(params, :n_motor, 4)
+    densidad = Float32(get(params, :densidad_conexion, 0.3))
+    
+    umbral_disparo = Float32(get(params, :umbral_disparo, -60.0))
+    potencial_reposo = Float32(get(params, :potencial_reposo, -70.0))
+    tau = Float32(get(params, :tau, 10.0))
+    
+    η_hebb = Float32(get(params, :η_hebb, 0.01))
+    η_stdp = Float32(get(params, :η_stdp, 0.005))
+    τ_traza = Float32(get(params, :τ_traza, 0.95))
+    
+    umbral_poda = Float32(get(params, :umbral_poda, 0.01))
+    frecuencia_poda = get(params, :frecuencia_poda, 100)
+    
+    prob_neurogenesis = Float32(get(params, :prob_neurogenesis, 0.001))
+    max_neuronas = get(params, :max_neuronas, 500)
+    
+    # Crear estructuras
+    neuronas = Dict{Int, Neuron}()
+    sinapsis = Dict{Int, Synapse}()
+    sinapsis_por_pre = Dict{Int, Vector{Int}}()
+    sinapsis_por_post = Dict{Int, Vector{Int}}()
+    
+    neuron_id = 1
+    synapse_id = 1
+    
+    # Crear neuronas sensoriales (con umbral derivado de personalidad)
+    sensory_ids = Int[]
+    for i in 1:n_sensory
+        n = Neuron(
+            neuron_id, SENSORY,
+            potencial_reposo,
+            umbral_disparo,
+            potencial_reposo,
+            tau,
+            0, 2,
+            0, 0, 0,
+            "S$i",
+            now()
+        )
+        neuronas[neuron_id] = n
+        sinapsis_por_pre[neuron_id] = Int[]
+        sinapsis_por_post[neuron_id] = Int[]
+        push!(sensory_ids, neuron_id)
+        neuron_id += 1
+    end
+    
+    # Crear interneuronas
+    inter_ids = Int[]
+    for i in 1:n_inter
+        n = Neuron(
+            neuron_id, INTER,
+            potencial_reposo,
+            umbral_disparo,
+            potencial_reposo,
+            tau,
+            0, 2,
+            0, 0, 0,
+            "I$i",
+            now()
+        )
+        neuronas[neuron_id] = n
+        sinapsis_por_pre[neuron_id] = Int[]
+        sinapsis_por_post[neuron_id] = Int[]
+        push!(inter_ids, neuron_id)
+        neuron_id += 1
+    end
+    
+    # Crear neuronas motoras
+    motor_ids = Int[]
+    for i in 1:n_motor
+        n = Neuron(
+            neuron_id, MOTOR,
+            potencial_reposo,
+            umbral_disparo,
+            potencial_reposo,
+            tau,
+            0, 2,
+            0, 0, 0,
+            "M$i",
+            now()
+        )
+        neuronas[neuron_id] = n
+        sinapsis_por_pre[neuron_id] = Int[]
+        sinapsis_por_post[neuron_id] = Int[]
+        push!(motor_ids, neuron_id)
+        neuron_id += 1
+    end
+    
+    # Conectar sensorial -> inter
+    for s_id in sensory_ids
+        for i_id in inter_ids
+            if rand() < densidad
+                peso = (rand(Float32) * 0.6f0 + 0.2f0) * (rand() < 0.85 ? 1 : -1)
+                syn = Synapse(synapse_id, s_id, i_id, peso=peso)
+                sinapsis[synapse_id] = syn
+                push!(sinapsis_por_pre[s_id], synapse_id)
+                push!(sinapsis_por_post[i_id], synapse_id)
+                synapse_id += 1
+            end
+        end
+    end
+    
+    # Conectar inter -> inter (recurrente)
+    for i1 in inter_ids
+        for i2 in inter_ids
+            if i1 != i2 && rand() < densidad * 0.5f0
+                peso = (rand(Float32) * 0.4f0 + 0.1f0) * (rand() < 0.7 ? 1 : -1)
+                syn = Synapse(synapse_id, i1, i2, peso=peso)
+                sinapsis[synapse_id] = syn
+                push!(sinapsis_por_pre[i1], synapse_id)
+                push!(sinapsis_por_post[i2], synapse_id)
+                synapse_id += 1
+            end
+        end
+    end
+    
+    # Conectar inter -> motor
+    for i_id in inter_ids
+        for m_id in motor_ids
+            if rand() < densidad * 1.5f0
+                peso = rand(Float32) * 0.6f0 + 0.3f0
+                syn = Synapse(synapse_id, i_id, m_id, peso=peso)
+                sinapsis[synapse_id] = syn
+                push!(sinapsis_por_pre[i_id], synapse_id)
+                push!(sinapsis_por_post[m_id], synapse_id)
+                synapse_id += 1
+            end
+        end
+    end
+    
+    Connectome(
+        neuronas, sinapsis,
+        sinapsis_por_pre, sinapsis_por_post,
+        neuron_id, synapse_id, 0,
+        η_hebb,
+        η_stdp,
+        τ_traza,
+        umbral_poda,
+        frecuencia_poda,
+        prob_neurogenesis,
+        max_neuronas,
         zeros(Float32, n_motor),
         ReentrantLock()
     )

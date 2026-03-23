@@ -21,6 +21,7 @@ include("TCHCore.jl")
 include("BodySchema.jl")
 include("Proprioception.jl")
 include("UnconsciousExpression.jl")
+include("Personalidad.jl")
 include("Experiencias.jl")
 include("Worm.jl")
 include("MarkovBrain.jl")
@@ -29,6 +30,7 @@ using .TCHCore
 using .BodySchema
 using .Proprioception
 using .UnconsciousExpression
+using .Personalidad
 using .Experiencias
 using .Worm
 using .MarkovBrain
@@ -41,13 +43,14 @@ global expression_engine = nothing
 global experience_bank = nothing
 global worm = nothing  # El cerebro orgánico
 global markov_brain = nothing  # El generador de texto
+global personalidad = nothing  # La identidad N1-Géminis
 
 # Buffer de mensajes espontáneos (para push a clientes)
 global spontaneous_buffer = Vector{Dict{String, Any}}()
 global buffer_lock = ReentrantLock()
 
 function init_tch()
-    global tch, body, self_sense, expression_engine, experience_bank, worm, markov_brain
+    global tch, body, self_sense, expression_engine, experience_bank, worm, markov_brain, personalidad
     
     if isnothing(tch)
         println("🧠 Iniciando sustrato neural TCH...")
@@ -61,18 +64,36 @@ function init_tch()
         println("   Plasticidad: REAL (Flux.jl)")
     end
     
+    # Inicializar PERSONALIDAD - La identidad N1-Géminis
+    # Esto DEBE ir antes del Worm porque el Worm deriva de la personalidad
+    if isnothing(personalidad)
+        println("🎭 Iniciando Personalidad N1-Géminis...")
+        personalidad = PersonalidadTCH()
+        estado = get_estado_personalidad(personalidad)
+        println("   N1 (Autoridad): $(round(personalidad.influencia_n1 * 100))%")
+        println("   Géminis (Adaptabilidad): $(round(personalidad.influencia_g * 100))%")
+        println("   Experiencia acumulada: $(personalidad.experiencia_total)")
+        println("   Expresiones totales: $(personalidad.expresiones_totales)")
+    end
+    
     # Inicializar WORM - el cerebro orgánico
+    # Los parámetros EMERGEN de la personalidad, no son arbitrarios
     if isnothing(worm)
         println("🪱 Iniciando conectoma orgánico (Worm)...")
-        worm = create_connectome(
-            n_sensory=8,    # 8 sentidos
-            n_inter=32,     # 32 interneuronas
-            n_motor=4       # 4 salidas motoras
-        )
+        println("   Parámetros derivados de N1-Géminis...")
+        
+        # Obtener parámetros desde la personalidad
+        worm_params = calcular_parametros_worm(personalidad)
+        
+        # Crear conectoma con parámetros identitarios
+        worm = Worm.create_connectome_from_params(worm_params)
+        
         stats = Worm.get_stats(worm)
         println("   Neuronas: $(stats["neuronas"]["total"])")
         println("   Sinapsis: $(stats["sinapsis"]["total"])")
-        println("   Plasticidad: STDP + Poda + Neurogénesis")
+        println("   Umbral expresión (derivado): $(round(worm_params[:umbral_expresion], digits=3))")
+        println("   Max neuronas (derivado): $(worm_params[:max_neuronas])")
+        println("   Plasticidad: STDP + Poda + Neurogénesis (modulada por identidad)")
     end
     
     # Inicializar banco de experiencias
@@ -209,14 +230,26 @@ function start_autonomous_loop!(core::TCH, interval::Float64=2.0)
                     update_proprioception!(body)
                 end
                 
-                # === DECISIÓN DE ESPONTANEIDAD (basada en WORM) ===
+                # === DECISIÓN DE ESPONTANEIDAD (basada en WORM + PERSONALIDAD) ===
+                # El umbral NO es arbitrario - EMERGE de N1-Géminis
                 should_speak_now = false
                 motor_activity = Float32[0, 0, 0, 0]
                 
+                # Calcular umbral dinámico desde la personalidad
+                umbral_expresion = 0.3f0  # Default
+                if !isnothing(personalidad)
+                    umbral_expresion = calcular_umbral_expresion(
+                        personalidad,
+                        tension=core.tension,
+                        curiosidad=core.curiosity,
+                        dopamina=core.dopamine
+                    )
+                end
+                
                 if !isnothing(worm)
                     motor_activity = Worm.get_output(worm)
-                    # Si cualquier salida motora supera 0.3, el worm quiere expresarse
-                    should_speak_now = any(m -> m > 0.3f0, motor_activity)
+                    # El umbral deriva de la personalidad, no es un valor fijo
+                    should_speak_now = any(m -> m > umbral_expresion, motor_activity)
                 end
                 
                 # También considerar el drive clásico
@@ -226,7 +259,7 @@ function start_autonomous_loop!(core::TCH, interval::Float64=2.0)
                 # Debug cada 20 ciclos
                 if core.cycles % 20 == 0
                     worm_stats = isnothing(worm) ? Dict() : Worm.get_stats(worm)
-                    println("📊 [Ciclo $(core.cycles)] drive=$(@sprintf("%.2f", drive)), motor=$(motor_activity), neuronas=$(get(worm_stats, "neuronas", Dict()))")
+                    println("📊 [Ciclo $(core.cycles)] drive=$(@sprintf("%.2f", drive)), umbral=$(@sprintf("%.2f", umbral_expresion)), motor=$(motor_activity), neuronas=$(get(worm_stats, "neuronas", Dict()))")
                 end
                 
                 if should_speak_now
@@ -526,6 +559,15 @@ function router(req::HTTP.Request)
                 return json_response(Dict("error" => "Worm no inicializado"), status=500)
             end
             return json_response(Worm.get_stats(worm))
+        
+        # GET /api/tch/personalidad - Estado de la personalidad N1-Géminis (SOLO LECTURA)
+        # No hay endpoint de escritura - nadie externo puede modificar la identidad
+        elseif method == "GET" && path == "/api/tch/personalidad"
+            init_tch()
+            if isnothing(personalidad)
+                return json_response(Dict("error" => "Personalidad no inicializada"), status=500)
+            end
+            return json_response(get_estado_personalidad(personalidad))
         
         else
             return json_response(Dict("error" => "Ruta no encontrada: $path"), status=404)
