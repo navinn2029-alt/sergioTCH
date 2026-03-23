@@ -20,24 +20,27 @@ include("TCHCore.jl")
 include("BodySchema.jl")
 include("Proprioception.jl")
 include("UnconsciousExpression.jl")
+include("Experiencias.jl")
 
 using .TCHCore
 using .BodySchema
 using .Proprioception
 using .UnconsciousExpression
+using .Experiencias
 
 # Instancia global
 global tch = nothing
 global body = nothing
 global self_sense = nothing
 global expression_engine = nothing
+global experience_bank = nothing
 
 # Buffer de mensajes espontáneos (para push a clientes)
 global spontaneous_buffer = Vector{Dict{String, Any}}()
 global buffer_lock = ReentrantLock()
 
 function init_tch()
-    global tch, body, self_sense, expression_engine
+    global tch, body, self_sense, expression_engine, experience_bank
     
     if isnothing(tch)
         println("🧠 Iniciando sustrato neural TCH...")
@@ -72,6 +75,13 @@ function init_tch()
         expression_engine = ExpressionEngine()
         println("   Fluidez: $(expression_engine.fluency)")
         println("   Creatividad: $(expression_engine.creativity)")
+    end
+    
+    # Inicializar banco de experiencias
+    if isnothing(experience_bank)
+        println("📚 Iniciando banco de experiencias...")
+        experience_bank = ExperienceBank()
+        load_experiences!(experience_bank)
     end
     
     tch
@@ -143,6 +153,11 @@ function start_autonomous_loop!(core::TCH, interval::Float64=2.0)
                 drive = calculate_drive(core)
                 should_speak_now = drive > core.θ_exp
                 
+                # Debug espontaneidad
+                if core.cycles % 20 == 0
+                    println("📊 [DEBUG] Ciclo $(core.cycles): drive=$drive, θ_exp=$(core.θ_exp), should_speak=$should_speak_now")
+                end
+                
                 if should_speak_now
                     # ¡El sistema QUIERE hablar!
                     spontaneous_msg = generate_spontaneous_expression(core)
@@ -198,16 +213,25 @@ end
 
 """
 Generar expresión espontánea basada en el estado interno.
-Esta es la VOZ EMERGENTE del sistema, no una respuesta hardcodeada.
+Esta es la VOZ EMERGENTE del sistema, usando experiencias REALES de comunicación.
 """
 function generate_spontaneous_expression(core::TCH)::String
-    global self_sense, expression_engine
+    global self_sense, expression_engine, experience_bank
     
     mood = calculate_mood(core)
     drive = calculate_drive(core)
     state = core.current_state
     
-    # Si tenemos motor de expresión, usarlo
+    # PRIORIDAD 1: Usar banco de experiencias reales
+    if !isnothing(experience_bank) && experience_bank.loaded
+        # Obtener expresión contextual basada en estimulación
+        expression = get_contextual_expression(experience_bank, mood, core.stimulation)
+        if !isempty(expression)
+            return expression
+        end
+    end
+    
+    # PRIORIDAD 2: Usar motor de expresión inconsciente
     if !isnothing(expression_engine) && can_express(expression_engine)
         internal_state = Dict{Symbol, Float32}(
             :stimulation => core.stimulation,
@@ -231,24 +255,16 @@ function generate_spontaneous_expression(core::TCH)::String
         end
     end
     
-    # Expresión basada en el estado de conciencia (emergente, no hardcodeada)
-    # El contenido emerge de la combinación de estado + mood + drive
-    
+    # PRIORIDAD 3: Pensamientos internos
     if !isempty(core.thoughts)
-        # Usar el último pensamiento espontáneo
         recent = filter(t -> t.spontaneous, core.thoughts)
         if !isempty(recent)
             return recent[end].content
         end
     end
     
-    # Expresión mínima - sentimiento puro sin palabras predefinidas
-    # Como un suspiro o una exclamación que emerge del estado
-    intensity_marker = drive > 0.8 ? "..." : drive > 0.7 ? ".." : "."
-    
-    # El sistema no tiene vocabulario predefinido todavía
-    # Solo puede expresar su estado de forma primitiva
-    return ""  # Silencio - aún está aprendiendo a hablar
+    # Silencio - el sistema no tiene nada que decir en este momento
+    ""
 end
 
 function json_response(data; status=200)
@@ -434,6 +450,20 @@ function router(req::HTTP.Request)
                 return json_response(Dict("error" => "Cuerpo no inicializado"), status=500)
             end
             return json_response(get_proprioception(body))
+        
+        # GET /api/tch/experiencias
+        elseif method == "GET" && path == "/api/tch/experiencias"
+            init_tch()
+            if isnothing(experience_bank) || !experience_bank.loaded
+                return json_response(Dict(
+                    "loaded" => false,
+                    "conversaciones" => 0,
+                    "total_expresiones" => 0,
+                    "poemas" => 0,
+                    "frases_clave" => 0
+                ))
+            end
+            return json_response(Experiencias.get_stats(experience_bank))
         
         else
             return json_response(Dict("error" => "Ruta no encontrada: $path"), status=404)

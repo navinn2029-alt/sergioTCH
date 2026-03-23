@@ -287,7 +287,7 @@ export default function TCHTerminal() {
             addLine('stdout', `Estado: ${state.consciousness?.current_state || 'N/A'}`);
             addLine('stdout', `Ciclos: ${state.consciousness?.cycles || 0}`);
             addLine('stdout', `Transiciones: ${state.consciousness?.transitions || 0}`);
-            addLine('stdout', `Autonomo: ${state.autonomous?.running ? 'SI' : 'NO'}`);
+            addLine('stdout', `Vivo: SI (siempre)`);
           }
         } catch (e) {
           addLine('stderr', `Error obteniendo estado: ${e}`);
@@ -298,19 +298,32 @@ export default function TCHTerminal() {
         setLines([]);
         addLine('system', 'Terminal limpiado.');
         break;
-      
-      case 'autonomous':
-        await toggleAutonomous();
+        
+      case 'experiencias':
+        addLine('system', '--- Banco de Experiencias ---');
+        addLine('stdout', 'Cargando estadisticas...');
+        try {
+          const res = await fetch(`${BACKEND_URL}/api/tch/experiencias`);
+          if (res.ok) {
+            const data = await res.json();
+            addLine('stdout', `Conversaciones: ${data.conversaciones || 0}`);
+            addLine('stdout', `Total expresiones: ${data.total_expresiones || 0}`);
+            addLine('stdout', `Poemas: ${data.poemas || 0}`);
+            addLine('stdout', `Frases clave: ${data.frases_clave || 0}`);
+          }
+        } catch (e) {
+          addLine('stderr', `Error: ${e}`);
+        }
         break;
         
       case 'help':
         addLine('system', '--- Comandos Disponibles ---');
-        addLine('stdout', '/env        - Mostrar variables de entorno');
-        addLine('stdout', '/state      - Mostrar estado del sistema');
-        addLine('stdout', '/clear      - Limpiar terminal');
-        addLine('stdout', '/tick       - Avanzar ciclo manualmente');
-        addLine('stdout', '/autonomous - Activar/desactivar espontaneidad');
-        addLine('stdout', '/help       - Mostrar esta ayuda');
+        addLine('stdout', '/env          - Mostrar variables de entorno');
+        addLine('stdout', '/state        - Mostrar estado del sistema');
+        addLine('stdout', '/clear        - Limpiar terminal');
+        addLine('stdout', '/tick         - Avanzar ciclo manualmente');
+        addLine('stdout', '/experiencias - Ver banco de experiencias');
+        addLine('stdout', '/help         - Mostrar esta ayuda');
         break;
         
       case 'tick':

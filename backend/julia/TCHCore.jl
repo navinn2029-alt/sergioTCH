@@ -216,7 +216,7 @@ function TCH(; load_existing::Bool=true)
         κ,
         0.5f0, 0.2f0, 0.5f0, 0.4f0, 0.5f0, 0.2f0,
         L, 0, 0, 0,
-        0.015f0, 0.03f0, 0.04f0, 0.5f0, 0.65f0,
+        0.015f0, 0.03f0, 0.04f0, 0.5f0, 0.35f0,  # θ_exp = 0.35 (umbral de expresión)
         Plan[], 10,
         Thought[], 100,
         string(uuid4())[1:8],
