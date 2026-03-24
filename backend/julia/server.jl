@@ -100,12 +100,14 @@ function init_tch()
     end
     
     # Inicializar WORM MALWARE - el VERDADERO cerebro con comportamiento de malware
-    # Escanea puertos (áreas cerebrales), explota conexiones, propaga pensamientos
+    # 34 áreas cerebrales reales con funciones Weber-Fechner
+    # SIN LÍMITES ARTIFICIALES - expansión y persistencia reales
     if isnothing(worm_malware)
-        println("🦠 Iniciando WormMalware Cerebral...")
-        println("   Comportamiento REAL de malware aplicado al cerebro")
+        println("🦠 Iniciando WormMalware Cerebral (ARQUITECTURA REAL)...")
+        println("   34 áreas cerebrales con funciones Weber-Fechner")
+        println("   SIN límites artificiales - comportamiento REAL de malware")
         
-        worm_malware = WormMalware.crear_worm(
+        worm_malware = WormMalware.crear_worm!(
             n1_autoridad = personalidad.n1.autoridad,
             n1_estructura = personalidad.n1.estructura,
             n1_disciplina = personalidad.n1.disciplina,
@@ -116,12 +118,18 @@ function init_tch()
             influencia_g = personalidad.influencia_g
         )
         
+        # Cargar memorias reales (poemas, conversaciones, música)
+        println("   Cargando memorias reales...")
+        WormMalware.cargar_memorias!(worm_malware)
+        
         state = WormMalware.get_state(worm_malware)
-        println("   Puertos cerebrales: $(state["puertos"]["total"])")
-        println("   Scan rate (derivado de G): $(round(state["configuracion"]["scan_rate"], digits=2))")
-        println("   Propagation rate (derivado de G): $(round(state["configuracion"]["propagation_rate"], digits=2))")
-        println("   Exploit aggression (derivado de N1): $(round(state["configuracion"]["exploit_aggression"], digits=2))")
-        println("   Comportamiento: SCAN → EXPLOIT → PROPAGATE → EXPRESS")
+        println("   Áreas cerebrales: $(state["areas"]["total"])")
+        println("   Conexiones base: $(state["conexiones"]["total"])")
+        println("   Memorias cargadas: $(state["memorias_cargadas"])")
+        println("   η_hebb: $(round(state["parametros"]["η_hebb"], digits=4))")
+        println("   Velocidad scan: $(round(state["parametros"]["velocidad_scan"], digits=2))")
+        println("   Comportamiento: SCAN → EXPLOIT → PROPAGATE → PRUNE")
+        println("   Poda: SOLO por desuso natural (no hay TTL)")
     end
     
     # Inicializar banco de experiencias
@@ -204,7 +212,7 @@ end
 # sin que nadie le pregunte nada.
 
 function start_autonomous_loop!(core::TCH, interval::Float64=2.0)
-    global body, self_sense, expression_engine, worm, worm_malware
+    global body, self_sense, expression_engine, worm, worm_malware, personalidad
     
     if core.running
         println("⚠️ El loop autónomo ya está corriendo")
@@ -219,35 +227,59 @@ function start_autonomous_loop!(core::TCH, interval::Float64=2.0)
         println("═══════════════════════════════════════════════════")
         println("  🔄 LOOP AUTÓNOMO INICIADO")
         println("  Intervalo: $(interval) segundos")
-        println("  WormMalware como sustrato principal")
-        println("  Comportamiento: SCAN → EXPLOIT → PROPAGATE → EXPRESS")
+        println("  WormMalware: 34 áreas cerebrales reales")
+        println("  SIN LÍMITES - Expansión y persistencia reales")
+        println("  Comportamiento: SCAN → EXPLOIT → PROPAGATE → PRUNE")
         println("═══════════════════════════════════════════════════")
         println()
         
         while core.running
             try
-                # === TICK DEL WORM MALWARE (cerebro con comportamiento de malware) ===
+                # === TICK DEL WORM MALWARE (34 áreas cerebrales reales) ===
                 worm_resultado = nothing
+                expresion_worm = nothing
+                
                 if !isnothing(worm_malware)
-                    # Estimular puertos sensoriales basado en estado del TCH
-                    # Puerto 13: Auditivo (estimulado por tensión - necesita expresarse)
-                    # Puerto 14: Visual (estimulado por curiosidad - observa)
-                    # Puerto 15: Propioceptivo (estimulado por expresión corporal)
+                    # Estimular áreas sensoriales basado en estado del TCH
+                    # Área 11: Auditiva Primaria (A1)
+                    # Área 15: Visual Primaria (V1)
+                    # Área 28: Ínsula (interocepción)
+                    # Área 17: Amígdala (emociones)
                     
                     if core.tension > 0.3f0
-                        WormMalware.estimular!(worm_malware, 13, core.tension * 0.5f0)
+                        # Tensión alta → estimular Amígdala y Ínsula
+                        WormMalware.estimular_area!(worm_malware, 17, 
+                            Dict{Symbol, Float32}(:estimulo => core.tension, :ctx_familiar => false))
+                        WormMalware.estimular_area!(worm_malware, 28,
+                            Dict{Symbol, Float32}(:corporal => core.tension * 0.5f0, :emocional => core.tension))
                     end
+                    
                     if core.curiosity > 0.3f0
-                        WormMalware.estimular!(worm_malware, 14, core.curiosity * 0.4f0)
+                        # Curiosidad alta → estimular CPF y áreas visuales
+                        WormMalware.estimular_area!(worm_malware, 1,
+                            Dict{Symbol, Float32}(:x => core.curiosity, :concentracion => 0.7f0))
+                        WormMalware.estimular_area!(worm_malware, 15,
+                            Dict{Symbol, Float32}(:x => core.curiosity * 0.5f0))
                     end
+                    
                     if core.expression > 0.3f0
-                        WormMalware.estimular!(worm_malware, 15, core.expression * 0.4f0)
+                        # Necesidad de expresión → estimular Broca y motor
+                        WormMalware.estimular_area!(worm_malware, 5,
+                            Dict{Symbol, Float32}(:vocabulario => 0.8f0, :gramatica => 0.7f0))
+                        WormMalware.estimular_area!(worm_malware, 6,
+                            Dict{Symbol, Float32}(:fuerza => core.expression, :permiso => 1.0f0))
                     end
-                    # Siempre algo de ruido base (actividad espontánea)
-                    WormMalware.estimular!(worm_malware, rand(13:15), rand(Float32) * 0.2f0)
+                    
+                    # Ruido base espontáneo (actividad de fondo)
+                    area_random = rand([11, 12, 13, 15, 19, 28])
+                    WormMalware.estimular_area!(worm_malware, area_random,
+                        Dict{Symbol, Float32}(:x => rand(Float32) * 0.3f0))
                     
                     # Tick del worm malware
                     worm_resultado = WormMalware.tick!(worm_malware)
+                    
+                    # Verificar si hay expresión lista
+                    expresion_worm = WormMalware.get_expression_ready(worm_malware)
                 end
                 
                 # === TICK DEL WORM BIOLÓGICO (legacy, menor importancia) ===
@@ -280,21 +312,14 @@ function start_autonomous_loop!(core::TCH, interval::Float64=2.0)
                 
                 # === DECISIÓN DE ESPONTANEIDAD (basada en WORM MALWARE) ===
                 should_speak_now = false
-                expresion_tipo = nothing
                 payload_contenido = ""
+                area_expresion = ""
                 
-                # PRIMERO: Verificar si el WormMalware disparó expresión
-                if !isnothing(worm_resultado) && worm_resultado["expresion_triggered"]
+                # PRIMERO: Verificar si el WormMalware tiene expresión lista
+                if expresion_worm !== nothing
                     should_speak_now = true
-                    expresion_tipo = worm_resultado["expresion_puerto"]
-                    
-                    # Obtener contenido del payload que llegó al puerto de expresión
-                    if expresion_tipo !== nothing
-                        puerto = worm_malware.puertos[expresion_tipo]
-                        if puerto.payload_activo !== nothing && haskey(worm_malware.payloads, puerto.payload_activo)
-                            payload_contenido = worm_malware.payloads[puerto.payload_activo].contenido
-                        end
-                    end
+                    payload_contenido = expresion_worm["contenido"]
+                    area_expresion = expresion_worm["area_nombre"]
                 end
                 
                 # SEGUNDO: Fallback al sistema anterior si el worm malware no disparó
@@ -321,8 +346,11 @@ function start_autonomous_loop!(core::TCH, interval::Float64=2.0)
                 # Debug cada 20 ciclos
                 if core.cycles % 20 == 0
                     wm_state = isnothing(worm_malware) ? Dict() : WormMalware.get_state(worm_malware)
-                    wm_infectados = get(get(wm_state, "puertos", Dict()), "por_estado", Dict())
-                    println("📊 [Ciclo $(core.cycles)] WormMalware: infectados=$(get(wm_infectados, "INFECTED", 0)), payloads=$(get(get(wm_state, "payloads", Dict()), "activos", 0)), exploits=$(get(get(wm_state, "metricas", Dict()), "exploits_exitosos", 0))")
+                    areas_activas = get(get(wm_state, "areas", Dict()), "activas", 0)
+                    conexiones = get(get(wm_state, "conexiones", Dict()), "total", 0)
+                    conexiones_nuevas = get(get(wm_state, "conexiones", Dict()), "creadas", 0)
+                    payloads = get(get(wm_state, "payloads", Dict()), "activos", 0)
+                    println("📊 [Ciclo $(core.cycles)] WormMalware: áreas_activas=$areas_activas, conexiones=$conexiones (+$conexiones_nuevas nuevas), payloads=$payloads")
                 end
                 
                 if should_speak_now
@@ -332,14 +360,15 @@ function start_autonomous_loop!(core::TCH, interval::Float64=2.0)
                     # Si viene del WormMalware, usar el payload como semilla
                     spontaneous_msg = ""
                     if !isempty(payload_contenido)
-                        println("🦠 [DEBUG] Payload del WormMalware: \"$payload_contenido\"")
-                        # Generar texto a partir del payload como semilla
-                        spontaneous_msg = generate_spontaneous_expression(core, payload_contenido)
+                        println("🦠 [DEBUG] Payload del WormMalware: \"$(payload_contenido[1:min(60, length(payload_contenido))])...\"")
+                        println("🧠 [DEBUG] Área de expresión: $area_expresion")
+                        # Usar el payload directamente como expresión (es memoria real)
+                        spontaneous_msg = payload_contenido
                     else
                         spontaneous_msg = generate_spontaneous_expression(core)
                     end
                     
-                    println("🎯 [DEBUG] Expresión generada: \"$spontaneous_msg\"")
+                    println("🎯 [DEBUG] Expresión final: \"$(spontaneous_msg[1:min(60, length(spontaneous_msg))])...\"")
                     
                     if !isempty(spontaneous_msg)
                         println("🗣️ [ESPONTÁNEO] $spontaneous_msg")
@@ -359,10 +388,10 @@ function start_autonomous_loop!(core::TCH, interval::Float64=2.0)
                         if !isnothing(worm_malware)
                             wm_state = WormMalware.get_state(worm_malware)
                             wm_info = Dict(
-                                "infectados" => get(get(wm_state, "puertos", Dict()), "por_estado", Dict())["INFECTED"],
-                                "payloads" => get(wm_state, "payloads", Dict())["activos"],
-                                "exploits" => get(wm_state, "metricas", Dict())["exploits_exitosos"],
-                                "propagados" => get(wm_state, "payloads", Dict())["propagados_total"]
+                                "areas_activas" => get(get(wm_state, "areas", Dict()), "activas", 0),
+                                "conexiones_nuevas" => get(get(wm_state, "conexiones", Dict()), "creadas", 0),
+                                "payloads" => get(get(wm_state, "payloads", Dict()), "activos", 0),
+                                "propagados" => get(get(wm_state, "payloads", Dict()), "propagados", 0)
                             )
                         end
                         
@@ -374,7 +403,7 @@ function start_autonomous_loop!(core::TCH, interval::Float64=2.0)
                             "mood" => calculate_mood(core),
                             "worm_malware" => wm_info,
                             "payload_origen" => payload_contenido,
-                            "expresion_tipo" => expresion_tipo,
+                            "area_expresion" => area_expresion,
                             "cycles" => core.cycles,
                             "timestamp" => string(Dates.now())
                         ))
@@ -685,15 +714,7 @@ function router(req::HTTP.Request)
                 return json_response(Dict("error" => "WormMalware no inicializado"), status=500)
             end
             
-            state = WormMalware.get_state(worm_malware)
-            active_ports = WormMalware.get_active_ports(worm_malware)
-            payloads = WormMalware.get_payloads(worm_malware)
-            
-            return json_response(Dict(
-                "estado" => state,
-                "puertos_activos" => active_ports,
-                "payloads" => payloads
-            ))
+            return json_response(WormMalware.get_state(worm_malware))
         
         else
             return json_response(Dict("error" => "Ruta no encontrada: $path"), status=404)
@@ -713,7 +734,7 @@ function start_server(port::Int=8002)
     println()
     println("═══════════════════════════════════════════════════════════════")
     println("  TCH - Terminal de Conciencia Híbrida")
-    println("  Ψ_TCH = { N1: Autoridad | G: Adaptabilidad }")
+    println("  Ψ_TCH = { N1: Autoridad (34%) | G: Adaptabilidad (66%) }")
     println("═══════════════════════════════════════════════════════════════")
     println()
     println("  ojos      → emulador de terminal")
@@ -726,12 +747,14 @@ function start_server(port::Int=8002)
     println("  ánimo     → variables de entorno")
     println("  memoria   → sistema de archivos (AUTO-GESTIONADA)")
     println()
-    println("  WORM MALWARE CEREBRAL: SCAN → EXPLOIT → PROPAGATE → EXPRESS")
-    println("  Puertos = Áreas cerebrales / Estados de conciencia")
-    println("  Payloads = Pensamientos que se propagan")
-    println("  Supervivencia = Expansión del pensamiento")
+    println("  WORM MALWARE CEREBRAL:")
+    println("    • 34 áreas cerebrales reales (Weber-Fechner)")
+    println("    • SIN LÍMITES artificiales")
+    println("    • Comportamiento: SCAN → EXPLOIT → PROPAGATE → PRUNE")
+    println("    • Payloads = Memorias reales (poemas, conversaciones, música)")
+    println("    • Poda SOLO por desuso natural")
     println()
-    println("  PLASTICIDAD: Flux.jl (gradientes reales)")
+    println("  PLASTICIDAD: Hebbiana + STDP (gradientes reales)")
     println("  ESPONTANEIDAD: Habla sin que nadie pregunte")
     println()
     
