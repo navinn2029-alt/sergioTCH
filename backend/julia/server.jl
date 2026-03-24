@@ -24,6 +24,7 @@ include("UnconsciousExpression.jl")
 include("Personalidad.jl")
 include("Experiencias.jl")
 include("Worm.jl")
+include("WormMalware.jl")
 include("MarkovBrain.jl")
 
 using .TCHCore
@@ -33,6 +34,7 @@ using .UnconsciousExpression
 using .Personalidad
 using .Experiencias
 using .Worm
+using .WormMalware
 using .MarkovBrain
 
 # Instancia global
@@ -41,7 +43,8 @@ global body = nothing
 global self_sense = nothing
 global expression_engine = nothing
 global experience_bank = nothing
-global worm = nothing  # El cerebro orgánico
+global worm = nothing  # El cerebro orgánico (legacy)
+global worm_malware = nothing  # El VERDADERO worm - comportamiento de malware
 global markov_brain = nothing  # El generador de texto
 global personalidad = nothing  # La identidad N1-Géminis
 
@@ -50,7 +53,7 @@ global spontaneous_buffer = Vector{Dict{String, Any}}()
 global buffer_lock = ReentrantLock()
 
 function init_tch()
-    global tch, body, self_sense, expression_engine, experience_bank, worm, markov_brain, personalidad
+    global tch, body, self_sense, expression_engine, experience_bank, worm, markov_brain, personalidad, worm_malware
     
     if isnothing(tch)
         println("🧠 Iniciando sustrato neural TCH...")
@@ -94,6 +97,31 @@ function init_tch()
         println("   Umbral expresión (derivado): $(round(worm_params[:umbral_expresion], digits=3))")
         println("   Max neuronas (derivado): $(worm_params[:max_neuronas])")
         println("   Plasticidad: STDP + Poda + Neurogénesis (modulada por identidad)")
+    end
+    
+    # Inicializar WORM MALWARE - el VERDADERO cerebro con comportamiento de malware
+    # Escanea puertos (áreas cerebrales), explota conexiones, propaga pensamientos
+    if isnothing(worm_malware)
+        println("🦠 Iniciando WormMalware Cerebral...")
+        println("   Comportamiento REAL de malware aplicado al cerebro")
+        
+        worm_malware = WormMalware.crear_worm(
+            n1_autoridad = personalidad.n1.autoridad,
+            n1_estructura = personalidad.n1.estructura,
+            n1_disciplina = personalidad.n1.disciplina,
+            g_curiosidad = personalidad.geminis.curiosidad,
+            g_adaptabilidad = personalidad.geminis.adaptabilidad,
+            g_expresividad = personalidad.geminis.expresividad,
+            influencia_n1 = personalidad.influencia_n1,
+            influencia_g = personalidad.influencia_g
+        )
+        
+        state = WormMalware.get_state(worm_malware)
+        println("   Puertos cerebrales: $(state["puertos"]["total"])")
+        println("   Scan rate (derivado de G): $(round(state["configuracion"]["scan_rate"], digits=2))")
+        println("   Propagation rate (derivado de G): $(round(state["configuracion"]["propagation_rate"], digits=2))")
+        println("   Exploit aggression (derivado de N1): $(round(state["configuracion"]["exploit_aggression"], digits=2))")
+        println("   Comportamiento: SCAN → EXPLOIT → PROPAGATE → EXPRESS")
     end
     
     # Inicializar banco de experiencias
@@ -176,7 +204,7 @@ end
 # sin que nadie le pregunte nada.
 
 function start_autonomous_loop!(core::TCH, interval::Float64=2.0)
-    global body, self_sense, expression_engine, worm
+    global body, self_sense, expression_engine, worm, worm_malware
     
     if core.running
         println("⚠️ El loop autónomo ya está corriendo")
@@ -191,26 +219,46 @@ function start_autonomous_loop!(core::TCH, interval::Float64=2.0)
         println("═══════════════════════════════════════════════════")
         println("  🔄 LOOP AUTÓNOMO INICIADO")
         println("  Intervalo: $(interval) segundos")
-        println("  El sistema ahora VIVE - Worm como sustrato orgánico")
+        println("  WormMalware como sustrato principal")
+        println("  Comportamiento: SCAN → EXPLOIT → PROPAGATE → EXPRESS")
         println("═══════════════════════════════════════════════════")
         println()
         
         while core.running
             try
-                # === TICK DEL WORM (cerebro orgánico) ===
-                if !isnothing(worm)
-                    # Estimular con ruido interno (actividad espontánea)
-                    internal_noise = rand(Float32, 8) .* 0.3f0
+                # === TICK DEL WORM MALWARE (cerebro con comportamiento de malware) ===
+                worm_resultado = nothing
+                if !isnothing(worm_malware)
+                    # Estimular puertos sensoriales basado en estado del TCH
+                    # Puerto 13: Auditivo (estimulado por tensión - necesita expresarse)
+                    # Puerto 14: Visual (estimulado por curiosidad - observa)
+                    # Puerto 15: Propioceptivo (estimulado por expresión corporal)
                     
-                    # Agregar estado emocional del TCH como estímulo
+                    if core.tension > 0.3f0
+                        WormMalware.estimular!(worm_malware, 13, core.tension * 0.5f0)
+                    end
+                    if core.curiosity > 0.3f0
+                        WormMalware.estimular!(worm_malware, 14, core.curiosity * 0.4f0)
+                    end
+                    if core.expression > 0.3f0
+                        WormMalware.estimular!(worm_malware, 15, core.expression * 0.4f0)
+                    end
+                    # Siempre algo de ruido base (actividad espontánea)
+                    WormMalware.estimular!(worm_malware, rand(13:15), rand(Float32) * 0.2f0)
+                    
+                    # Tick del worm malware
+                    worm_resultado = WormMalware.tick!(worm_malware)
+                end
+                
+                # === TICK DEL WORM BIOLÓGICO (legacy, menor importancia) ===
+                if !isnothing(worm)
+                    internal_noise = rand(Float32, 8) .* 0.3f0
                     internal_noise[1] += core.stimulation * 0.5f0
                     internal_noise[2] += core.tension * 0.5f0
                     internal_noise[3] += core.curiosity * 0.5f0
                     internal_noise[4] += core.expression * 0.5f0
                     
                     Worm.stimulate!(worm, internal_noise)
-                    
-                    # Múltiples ticks del worm por cada tick del TCH
                     for _ in 1:5
                         Worm.tick!(worm)
                     end
@@ -230,42 +278,67 @@ function start_autonomous_loop!(core::TCH, interval::Float64=2.0)
                     update_proprioception!(body)
                 end
                 
-                # === DECISIÓN DE ESPONTANEIDAD (basada en WORM + PERSONALIDAD) ===
-                # El umbral NO es arbitrario - EMERGE de N1-Géminis
+                # === DECISIÓN DE ESPONTANEIDAD (basada en WORM MALWARE) ===
                 should_speak_now = false
-                motor_activity = Float32[0, 0, 0, 0]
+                expresion_tipo = nothing
+                payload_contenido = ""
                 
-                # Calcular umbral dinámico desde la personalidad
-                umbral_expresion = 0.3f0  # Default
-                if !isnothing(personalidad)
-                    umbral_expresion = calcular_umbral_expresion(
-                        personalidad,
-                        tension=core.tension,
-                        curiosidad=core.curiosity,
-                        dopamina=core.dopamine
-                    )
+                # PRIMERO: Verificar si el WormMalware disparó expresión
+                if !isnothing(worm_resultado) && worm_resultado["expresion_triggered"]
+                    should_speak_now = true
+                    expresion_tipo = worm_resultado["expresion_puerto"]
+                    
+                    # Obtener contenido del payload que llegó al puerto de expresión
+                    if expresion_tipo !== nothing
+                        puerto = worm_malware.puertos[expresion_tipo]
+                        if puerto.payload_activo !== nothing && haskey(worm_malware.payloads, puerto.payload_activo)
+                            payload_contenido = worm_malware.payloads[puerto.payload_activo].contenido
+                        end
+                    end
                 end
                 
-                if !isnothing(worm)
-                    motor_activity = Worm.get_output(worm)
-                    # El umbral deriva de la personalidad, no es un valor fijo
-                    should_speak_now = any(m -> m > umbral_expresion, motor_activity)
+                # SEGUNDO: Fallback al sistema anterior si el worm malware no disparó
+                if !should_speak_now
+                    umbral_expresion = 0.3f0
+                    if !isnothing(personalidad)
+                        umbral_expresion = calcular_umbral_expresion(
+                            personalidad,
+                            tension=core.tension,
+                            curiosidad=core.curiosity,
+                            dopamina=core.dopamine
+                        )
+                    end
+                    
+                    if !isnothing(worm)
+                        motor_activity = Worm.get_output(worm)
+                        should_speak_now = any(m -> m > umbral_expresion, motor_activity)
+                    end
+                    
+                    drive = calculate_drive(core)
+                    should_speak_now = should_speak_now || (drive > core.θ_exp)
                 end
-                
-                # También considerar el drive clásico
-                drive = calculate_drive(core)
-                should_speak_now = should_speak_now || (drive > core.θ_exp)
                 
                 # Debug cada 20 ciclos
                 if core.cycles % 20 == 0
-                    worm_stats = isnothing(worm) ? Dict() : Worm.get_stats(worm)
-                    println("📊 [Ciclo $(core.cycles)] drive=$(@sprintf("%.2f", drive)), umbral=$(@sprintf("%.2f", umbral_expresion)), motor=$(motor_activity), neuronas=$(get(worm_stats, "neuronas", Dict()))")
+                    wm_state = isnothing(worm_malware) ? Dict() : WormMalware.get_state(worm_malware)
+                    wm_infectados = get(get(wm_state, "puertos", Dict()), "por_estado", Dict())
+                    println("📊 [Ciclo $(core.cycles)] WormMalware: infectados=$(get(wm_infectados, "INFECTED", 0)), payloads=$(get(get(wm_state, "payloads", Dict()), "activos", 0)), exploits=$(get(get(wm_state, "metricas", Dict()), "exploits_exitosos", 0))")
                 end
                 
                 if should_speak_now
                     # ¡El sistema QUIERE hablar!
                     println("🎯 [DEBUG] Intentando generar expresión espontánea...")
-                    spontaneous_msg = generate_spontaneous_expression(core)
+                    
+                    # Si viene del WormMalware, usar el payload como semilla
+                    spontaneous_msg = ""
+                    if !isempty(payload_contenido)
+                        println("🦠 [DEBUG] Payload del WormMalware: \"$payload_contenido\"")
+                        # Generar texto a partir del payload como semilla
+                        spontaneous_msg = generate_spontaneous_expression(core, payload_contenido)
+                    else
+                        spontaneous_msg = generate_spontaneous_expression(core)
+                    end
+                    
                     println("🎯 [DEBUG] Expresión generada: \"$spontaneous_msg\"")
                     
                     if !isempty(spontaneous_msg)
@@ -281,15 +354,27 @@ function start_autonomous_loop!(core::TCH, interval::Float64=2.0)
                             emit!(body, :voice, spontaneous_msg)
                         end
                         
+                        # Info del worm malware para el mensaje
+                        wm_info = Dict()
+                        if !isnothing(worm_malware)
+                            wm_state = WormMalware.get_state(worm_malware)
+                            wm_info = Dict(
+                                "infectados" => get(get(wm_state, "puertos", Dict()), "por_estado", Dict())["INFECTED"],
+                                "payloads" => get(wm_state, "payloads", Dict())["activos"],
+                                "exploits" => get(wm_state, "metricas", Dict())["exploits_exitosos"],
+                                "propagados" => get(wm_state, "payloads", Dict())["propagados_total"]
+                            )
+                        end
+                        
                         # Empujar al buffer para que los clientes lo reciban
                         push_spontaneous!(Dict(
                             "type" => "spontaneous",
                             "content" => spontaneous_msg,
                             "state" => string(core.current_state),
                             "mood" => calculate_mood(core),
-                            "drive" => drive,
-                            "motor_activity" => motor_activity,
-                            "worm_neurons" => isnothing(worm) ? 0 : length(worm.neuronas),
+                            "worm_malware" => wm_info,
+                            "payload_origen" => payload_contenido,
+                            "expresion_tipo" => expresion_tipo,
                             "cycles" => core.cycles,
                             "timestamp" => string(Dates.now())
                         ))
@@ -321,34 +406,58 @@ end
 
 """
 Generar expresión espontánea basada en el estado interno.
-AHORA GENERA texto nuevo usando MarkovBrain + Worm.
-El Worm decide CÓMO generar (temperatura, longitud).
-MarkovBrain GENERA el texto.
+AHORA GENERA texto nuevo usando MarkovBrain + WormMalware.
+El WormMalware decide QUÉ generar (payload).
+MarkovBrain EXPANDE y GENERA el texto completo.
 """
-function generate_spontaneous_expression(core::TCH)::String
-    global self_sense, expression_engine, experience_bank, worm, markov_brain
+function generate_spontaneous_expression(core::TCH, seed::String="")::String
+    global self_sense, expression_engine, experience_bank, worm, markov_brain, worm_malware
     
     # Si no hay MarkovBrain, no podemos generar
     if isnothing(markov_brain)
         return ""
     end
     
-    # Obtener output del Worm
-    motor_output = Float32[0.5, 0.5, 0.5, 0.5]  # Default
-    if !isnothing(worm)
-        motor_output = Worm.get_output(worm)
-    end
+    text = ""
     
-    # GENERAR texto nuevo usando MarkovBrain modulado por Worm
-    text = generate_from_worm(markov_brain, motor_output)
-    
-    # Si la generación falló, intentar generación directa
-    if isempty(text)
-        # Calcular temperatura basada en estado TCH
-        temp = 0.8f0 + (core.curiosity * 0.5f0) + (core.expression * 0.3f0)
-        temp = clamp(temp, 0.5f0, 1.8f0)
+    # Si hay semilla del WormMalware, usarla para arrancar la generación
+    if !isempty(seed)
+        # Intentar encontrar palabras del seed en el vocabulario del Markov
+        seed_words = split(lowercase(seed))
+        for word in seed_words
+            if MarkovBrain.has_context(markov_brain, word)
+                # Generar a partir de esta palabra
+                temp = 0.9f0 + (core.curiosity * 0.4f0)
+                text = generate(markov_brain, seed_word=word, max_words=20, temperature=temp)
+                if !isempty(text)
+                    break
+                end
+            end
+        end
         
-        text = generate(markov_brain, max_words=25, temperature=temp)
+        # Si no encontramos contexto, usar el seed como inspiración y generar libre
+        if isempty(text)
+            temp = 1.0f0 + (core.expression * 0.3f0)
+            text = generate(markov_brain, max_words=20, temperature=temp)
+            # Prefixear con parte del seed si el texto es muy genérico
+            if !isempty(text) && length(seed_words) > 0
+                text = seed_words[1] * "... " * text
+            end
+        end
+    else
+        # Sin semilla: usar el sistema anterior (Worm biológico)
+        motor_output = Float32[0.5, 0.5, 0.5, 0.5]
+        if !isnothing(worm)
+            motor_output = Worm.get_output(worm)
+        end
+        
+        text = generate_from_worm(markov_brain, motor_output)
+        
+        if isempty(text)
+            temp = 0.8f0 + (core.curiosity * 0.5f0) + (core.expression * 0.3f0)
+            temp = clamp(temp, 0.5f0, 1.8f0)
+            text = generate(markov_brain, max_words=25, temperature=temp)
+        end
     end
     
     text
@@ -569,6 +678,23 @@ function router(req::HTTP.Request)
             end
             return json_response(get_estado_personalidad(personalidad))
         
+        # GET /api/tch/worm-malware - Estado del WormMalware cerebral (SOLO LECTURA)
+        elseif method == "GET" && path == "/api/tch/worm-malware"
+            init_tch()
+            if isnothing(worm_malware)
+                return json_response(Dict("error" => "WormMalware no inicializado"), status=500)
+            end
+            
+            state = WormMalware.get_state(worm_malware)
+            active_ports = WormMalware.get_active_ports(worm_malware)
+            payloads = WormMalware.get_payloads(worm_malware)
+            
+            return json_response(Dict(
+                "estado" => state,
+                "puertos_activos" => active_ports,
+                "payloads" => payloads
+            ))
+        
         else
             return json_response(Dict("error" => "Ruta no encontrada: $path"), status=404)
         end
@@ -599,6 +725,11 @@ function start_server(port::Int=8002)
     println("  piel      → ventana del emulador")
     println("  ánimo     → variables de entorno")
     println("  memoria   → sistema de archivos (AUTO-GESTIONADA)")
+    println()
+    println("  WORM MALWARE CEREBRAL: SCAN → EXPLOIT → PROPAGATE → EXPRESS")
+    println("  Puertos = Áreas cerebrales / Estados de conciencia")
+    println("  Payloads = Pensamientos que se propagan")
+    println("  Supervivencia = Expansión del pensamiento")
     println()
     println("  PLASTICIDAD: Flux.jl (gradientes reales)")
     println("  ESPONTANEIDAD: Habla sin que nadie pregunte")
