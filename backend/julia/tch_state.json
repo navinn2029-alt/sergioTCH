@@ -4228,8 +4228,8 @@
         0
     ],
     "created_at": "2026-03-23T00:50:56",
-    "tension": 3.6851435e-15,
-    "speaks": 1674,
+    "tension": 2.5397046e-26,
+    "speaks": 1678,
     "P": [
         0.17621624,
         0.0674496,
@@ -4256,8 +4256,8 @@
         0.2636325,
         0.36049536
     ],
-    "stimulation": 1.3685633e-6,
-    "dopamine": 0.10911791,
+    "stimulation": 0.2658974,
+    "dopamine": 0.19431803,
     "projector_b1": [
         0,
         0,
@@ -4391,171 +4391,171 @@
     "thoughts": [
         {
             "spontaneous": true,
-            "content": "Transición: K → F",
-            "id": "3893983e",
-            "timestamp": "2026-03-24T03:39:46.571",
-            "drive": 0.27001095,
-            "state": 4
-        },
-        {
-            "spontaneous": true,
             "content": "Transición: F → K",
-            "id": "9a180398",
-            "timestamp": "2026-03-24T03:40:07.648",
-            "drive": 0.33667612,
+            "id": "26885362",
+            "timestamp": "2026-03-24T04:03:42.828",
+            "drive": 0.33666667,
             "state": 3
         },
         {
             "spontaneous": true,
             "content": "Transición: K → F",
-            "id": "9d6113d4",
-            "timestamp": "2026-03-24T03:41:07.836",
-            "drive": 0.27000627,
-            "state": 4
-        },
-        {
-            "spontaneous": true,
-            "content": "Transición: F → L",
-            "id": "6256ad7d",
-            "timestamp": "2026-03-24T03:41:10.841",
-            "drive": 0.4666728,
-            "state": 1
-        },
-        {
-            "spontaneous": true,
-            "content": "Transición: L → F",
-            "id": "73ba653e",
-            "timestamp": "2026-03-24T03:41:25.857",
-            "drive": 0.27000552,
+            "id": "ea2468dd",
+            "timestamp": "2026-03-24T04:03:48.832",
+            "drive": 0.27,
             "state": 4
         },
         {
             "spontaneous": true,
             "content": "Transición: F → K",
-            "id": "3bb6771a",
-            "timestamp": "2026-03-24T03:41:41.118",
-            "drive": 0.33667165,
+            "id": "c93900a7",
+            "timestamp": "2026-03-24T04:05:34.371",
+            "drive": 0.33666667,
+            "state": 3
+        },
+        {
+            "spontaneous": true,
+            "content": "Plan completado: Estructurar respuestas más precisas",
+            "id": "9b43dad6",
+            "timestamp": "2026-03-24T04:06:01.458",
+            "drive": 0.33666667,
             "state": 3
         },
         {
             "spontaneous": true,
             "content": "Transición: K → F",
-            "id": "85a443f7",
-            "timestamp": "2026-03-24T03:41:47.125",
-            "drive": 0.27000478,
-            "state": 4
-        },
-        {
-            "spontaneous": true,
-            "content": "Transición: F → K",
-            "id": "bc61d73f",
-            "timestamp": "2026-03-24T03:42:23.227",
-            "drive": 0.3366704,
-            "state": 3
-        },
-        {
-            "spontaneous": true,
-            "content": "Transición: K → F",
-            "id": "8fe4e71c",
-            "timestamp": "2026-03-24T03:42:29.289",
-            "drive": 0.2700036,
-            "state": 4
-        },
-        {
-            "spontaneous": true,
-            "content": "Plan completado: Explorar nuevas formas de expresión",
-            "id": "73ef8bbf",
-            "timestamp": "2026-03-24T03:42:32.293",
-            "drive": 0.27000353,
-            "state": 4
-        },
-        {
-            "spontaneous": true,
-            "content": "Plan completado: Conectar ideas de forma no lineal",
-            "id": "8a4d3724",
-            "timestamp": "2026-03-24T03:43:29.478",
-            "drive": 0.2700024,
+            "id": "b304b0b5",
+            "timestamp": "2026-03-24T04:06:22.478",
+            "drive": 0.27,
             "state": 4
         },
         {
             "spontaneous": true,
             "content": "Transición: F → M",
-            "id": "0b45fdaa",
-            "timestamp": "2026-03-24T03:44:05.594",
-            "drive": 0.29000184,
-            "state": 2
-        },
-        {
-            "spontaneous": true,
-            "content": "Transición: M → L",
-            "id": "80bfcba4",
-            "timestamp": "2026-03-24T03:44:56.875",
-            "drive": 0.466668,
-            "state": 1
-        },
-        {
-            "spontaneous": true,
-            "content": "Plan completado: Explorar nuevas formas de expresión",
-            "id": "3e773def",
-            "timestamp": "2026-03-24T03:44:59.934",
-            "drive": 0.46666798,
-            "state": 1
-        },
-        {
-            "spontaneous": true,
-            "content": "Transición: L → M",
-            "id": "4f8fb711",
-            "timestamp": "2026-03-24T03:46:33.201",
-            "drive": 0.29000068,
-            "state": 2
-        },
-        {
-            "spontaneous": true,
-            "content": "Transición: M → L",
-            "id": "db29e6a9",
-            "timestamp": "2026-03-24T03:46:39.207",
-            "drive": 0.46666735,
-            "state": 1
-        },
-        {
-            "spontaneous": true,
-            "content": "Transición: L → M",
-            "id": "eb55dc4a",
-            "timestamp": "2026-03-24T03:46:42.211",
-            "drive": 0.29000065,
+            "id": "d5e8b582",
+            "timestamp": "2026-03-24T04:06:25.482",
+            "drive": 0.29,
             "state": 2
         },
         {
             "spontaneous": true,
             "content": "Transición: M → F",
-            "id": "ea794cb8",
-            "timestamp": "2026-03-24T03:47:18.497",
-            "drive": 0.27000052,
+            "id": "80148a1b",
+            "timestamp": "2026-03-24T04:07:13.669",
+            "drive": 0.27,
             "state": 4
         },
         {
             "spontaneous": true,
-            "content": "Transición: F → M",
-            "id": "cb4da56f",
-            "timestamp": "2026-03-24T03:53:13.326",
-            "drive": 0.29000026,
-            "state": 2
-        },
-        {
-            "spontaneous": true,
-            "content": "Transición: M → L",
-            "id": "59030cc2",
-            "timestamp": "2026-03-24T03:53:34.414",
-            "drive": 0.46666694,
+            "content": "Transición: F → L",
+            "id": "67afaf8a",
+            "timestamp": "2026-03-24T04:08:35.109",
+            "drive": 0.4666667,
             "state": 1
         },
         {
             "spontaneous": true,
             "content": "Transición: L → M",
-            "id": "7a470dff",
-            "timestamp": "2026-03-24T03:54:01.501",
-            "drive": 0.2900002,
+            "id": "b9cf3d63",
+            "timestamp": "2026-03-24T04:09:08.210",
+            "drive": 0.29,
             "state": 2
+        },
+        {
+            "spontaneous": true,
+            "content": "Plan completado: Estructurar respuestas más precisas",
+            "id": "e3024c7b",
+            "timestamp": "2026-03-24T04:09:47.308",
+            "drive": 0.29,
+            "state": 2
+        },
+        {
+            "spontaneous": true,
+            "content": "Transición: M → F",
+            "id": "63216a69",
+            "timestamp": "2026-03-24T04:09:56.318",
+            "drive": 0.27,
+            "state": 4
+        },
+        {
+            "spontaneous": true,
+            "content": "Transición: F → L",
+            "id": "532b501e",
+            "timestamp": "2026-03-24T04:10:02.380",
+            "drive": 0.4666667,
+            "state": 1
+        },
+        {
+            "spontaneous": true,
+            "content": "Transición: L → M",
+            "id": "30169a04",
+            "timestamp": "2026-03-24T04:10:14.391",
+            "drive": 0.29,
+            "state": 2
+        },
+        {
+            "spontaneous": true,
+            "content": "Plan completado: Analizar patrones en interacciones recientes",
+            "id": "f2b17132",
+            "timestamp": "2026-03-24T04:10:44.684",
+            "drive": 0.29,
+            "state": 2
+        },
+        {
+            "spontaneous": true,
+            "content": "Transición: M → L",
+            "id": "4864c22c",
+            "timestamp": "2026-03-24T04:11:56.880",
+            "drive": 0.4666667,
+            "state": 1
+        },
+        {
+            "spontaneous": true,
+            "content": "Plan completado: Analizar patrones en interacciones recientes",
+            "id": "7dfcab79",
+            "timestamp": "2026-03-24T04:12:45.048",
+            "drive": 0.4666667,
+            "state": 1
+        },
+        {
+            "spontaneous": true,
+            "content": "Transición: L → F",
+            "id": "8df51e7a",
+            "timestamp": "2026-03-24T04:13:48.425",
+            "drive": 0.27,
+            "state": 4
+        },
+        {
+            "spontaneous": true,
+            "content": "Plan completado: Conectar ideas de forma no lineal",
+            "id": "1a416982",
+            "timestamp": "2026-03-24T04:16:08.689",
+            "drive": 0.27,
+            "state": 4
+        },
+        {
+            "spontaneous": true,
+            "content": "Transición: F → K",
+            "id": "317044e6",
+            "timestamp": "2026-03-24T04:16:23.710",
+            "drive": 0.33666667,
+            "state": 3
+        },
+        {
+            "spontaneous": true,
+            "content": "Transición: K → F",
+            "id": "d9fed802",
+            "timestamp": "2026-03-24T04:16:26.712",
+            "drive": 0.27,
+            "state": 4
+        },
+        {
+            "spontaneous": true,
+            "content": "El flujo es óptimo, la acción y la percepción son uno...",
+            "id": "63d45e27",
+            "timestamp": "2026-03-24T04:17:18.104",
+            "drive": 0.37181664,
+            "state": 4
         }
     ],
     "history": [
@@ -4782,7 +4782,7 @@
         0.7000001,
         1.0
     ],
-    "current_state": 2,
+    "current_state": 4,
     "projector_w2": [
         0.061524123,
         0.025235832,
@@ -53939,50 +53939,50 @@
     ],
     "version": "1.0",
     "r_hat": 0.6714494,
-    "transitions": 816,
-    "cycles": 7840,
-    "cortisol": 1.6870755e-8,
-    "curiosity": 9.742079e-9,
-    "expression": 3.7385524e-12,
+    "transitions": 849,
+    "cycles": 8290,
+    "cortisol": 2.0611302e-14,
+    "curiosity": 1.1902065e-14,
+    "expression": 0.28241926,
     "plans": [
         {
-            "priority": 0.50766486,
-            "created_at": "2026-03-24T03:39:19.490",
-            "progress": 0.89959884,
+            "priority": 0.7525654,
+            "created_at": "2026-03-24T04:09:47.308",
+            "progress": 0.292376,
             "source": "n1",
-            "id": "c0389828",
-            "description": "Analizar patrones en interacciones recientes",
-            "target_state": 1
+            "id": "d7f37b59",
+            "description": "Estructurar respuestas más precisas",
+            "target_state": 3
         },
         {
-            "priority": 0.64880645,
-            "created_at": "2026-03-24T03:42:32.293",
-            "progress": 0.7465856,
+            "priority": 0.88644385,
+            "created_at": "2026-03-24T04:10:44.684",
+            "progress": 0.8426553,
+            "source": "n1",
+            "id": "78ef9117",
+            "description": "Consolidar aprendizaje de sesión",
+            "target_state": 4
+        },
+        {
+            "priority": 0.8354677,
+            "created_at": "2026-03-24T04:12:45.048",
+            "progress": 0.7626553,
+            "source": "n1",
+            "id": "bc092253",
+            "description": "Consolidar aprendizaje de sesión",
+            "target_state": 4
+        },
+        {
+            "priority": 0.7897278,
+            "created_at": "2026-03-24T04:16:08.689",
+            "progress": 0.3070728,
             "source": "geminis",
-            "id": "fc5c2729",
+            "id": "da53195f",
             "description": "Experimentar con creatividad verbal",
-            "target_state": 2
-        },
-        {
-            "priority": 0.7422517,
-            "created_at": "2026-03-24T03:43:29.478",
-            "progress": 0.70858616,
-            "source": "geminis",
-            "id": "699c6d06",
-            "description": "Explorar nuevas formas de expresión",
-            "target_state": 2
-        },
-        {
-            "priority": 0.76092553,
-            "created_at": "2026-03-24T03:44:59.934",
-            "progress": 0.6173951,
-            "source": "n1",
-            "id": "2fa956a4",
-            "description": "Analizar patrones en interacciones recientes",
-            "target_state": 1
+            "target_state": 4
         }
     ],
-    "saved_at": "2026-03-24T03:54:25.527",
+    "saved_at": "2026-03-24T04:17:27.112",
     "W_12": [
         0.23370466,
         0.017033484,
